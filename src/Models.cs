@@ -14,6 +14,8 @@ public enum CrosshairMode { Shapes, Pixels, Image }
 
 public enum GifPlayback { Always, WhileFiring, OnClick }
 
+public enum DynamicStyle { Spread, Contract }
+
 public abstract class Observable : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -50,6 +52,7 @@ public sealed class Preset : Observable
     string _hotkey = "";
     string? _defaultId;
     GifPlayback _gifPlayback = GifPlayback.Always;
+    DynamicStyle _dynamicStyle = DynamicStyle.Spread;
     bool _spreadEnabled; int _spreadAmount = 6; int _spreadRiseMs = 150; int _spreadRecoverMs = 300;
     bool _fireColorEnabled; string _fireColor = "#FFFF3B3B";
 
@@ -90,6 +93,7 @@ public sealed class Preset : Observable
     public string? DefaultId { get => _defaultId; set => Set(ref _defaultId, value); }
     public GifPlayback GifPlayback { get => _gifPlayback; set => Set(ref _gifPlayback, value); }
     public bool SpreadEnabled { get => _spreadEnabled; set => Set(ref _spreadEnabled, value); }
+    public DynamicStyle DynamicStyle { get => _dynamicStyle; set => Set(ref _dynamicStyle, value); }
     public int SpreadAmount { get => _spreadAmount; set => Set(ref _spreadAmount, value); }
     public int SpreadRiseMs { get => _spreadRiseMs; set => Set(ref _spreadRiseMs, value); }
     public int SpreadRecoverMs { get => _spreadRecoverMs; set => Set(ref _spreadRecoverMs, value); }
@@ -131,6 +135,12 @@ public sealed class Preset : Observable
             Name = "Динамический разлёт", DefaultId = "spread", DotEnabled = true, DotSize = 2, CrossGap = 3, CrossLength = 6,
             CrossThickness = 2, Color = "#FF3DFF7A", SpreadEnabled = true, SpreadAmount = 7, SpreadRiseMs = 140, SpreadRecoverMs = 260,
             FireColorEnabled = true, FireColor = "#FFFF5A3B",
+        };
+        yield return new Preset
+        {
+            Name = "Динамическое сужение", DefaultId = "contract", DotEnabled = true, DotSize = 2, CrossGap = 9, CrossLength = 6,
+            CrossThickness = 2, Color = "#FF00E5FF", SpreadEnabled = true, DynamicStyle = DynamicStyle.Contract, SpreadAmount = 7,
+            SpreadRiseMs = 120, SpreadRecoverMs = 300, CircleEnabled = true, CircleRadius = 18, CircleThickness = 1,
         };
     }
 }

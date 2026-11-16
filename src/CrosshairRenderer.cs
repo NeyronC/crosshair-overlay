@@ -87,7 +87,7 @@ public static class CrosshairRenderer
     {
         var color = ParseColor(colorOverride ?? p.Color, Colors.Lime);
         int len = Math.Max(0, p.CrossLength), t = Math.Max(1, p.CrossThickness), gap = Math.Max(0, p.CrossGap + extraGap);
-        int circleRadius = p.CircleRadius + extraGap;
+        int circleRadius = Math.Max(1, p.CircleRadius + extraGap);
         int dot = Math.Max(1, p.DotSize);
 
         bool even = p.CrossEnabled ? t % 2 == 0 : p.DotEnabled ? dot % 2 == 0 : false;

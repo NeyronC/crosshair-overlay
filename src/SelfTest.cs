@@ -96,6 +96,20 @@ internal static class SelfTest
         yield return ("spread", w0 < wHalf && wHalf < wFull && wBack == w0 && red,
             $"ширина {w0} → {wHalf} → {wFull} → {wBack}, красный при стрельбе: {red}");
 
+        var cp = new Preset { CrossGap = 9, SpreadEnabled = true, DynamicStyle = DynamicStyle.Contract, SpreadAmount = 6, SpreadRiseMs = 100, SpreadRecoverMs = 200, CircleEnabled = true, CircleRadius = 18 };
+        var ca = new CrosshairAnimator(() => cp);
+        CrosshairBitmap CStep(bool fire, int from, int to) { CrosshairBitmap b = null!; for (int t = from; t <= to; t += 16) b = ca.Update(fire, t); return b; }
+        int Arm(CrosshairBitmap b)
+        {
+            int cy = b.CenterY, x = b.CenterX + 1;
+            while (x < b.Width && (b.Pixels[cy * b.Width + x] & 0x00FFFFFF) == 0) x++;
+            return x - b.CenterX;
+        }
+        int g0 = Arm(ca.Update(false, 0));
+        int gFire = Arm(CStep(true, 16, 160));
+        int gBack = Arm(CStep(false, 176, 450));
+        yield return ("contract", gFire < g0 && gBack == g0, $"отступ луча от центра {g0} → {gFire} (при стрельбе) → {gBack}");
+
         var changed = Preset.CreateDefault("classic")!;
         changed.CrossGap = 20; changed.Color = "#FF0000FF";
         var reset = Preset.CreateDefault(changed.DefaultId)!;

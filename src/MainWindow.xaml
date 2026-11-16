@@ -169,10 +169,18 @@
                         <TextBlock Text="РЕАКЦИЯ НА ВЫСТРЕЛ (ЛКМ)" Style="{StaticResource H2}"/>
                         <Border Style="{StaticResource Card}">
                             <StackPanel>
-                                <CheckBox Content="Разлёт при стрельбе (крест и круг расходятся, пока зажата ЛКМ)" IsChecked="{Binding SpreadEnabled}"/>
+                                <CheckBox Content="Двигаться при стрельбе, пока зажата ЛКМ" IsChecked="{Binding SpreadEnabled}"/>
                                 <StackPanel IsEnabled="{Binding SpreadEnabled}">
+                                    <Border Background="#0C0D10" CornerRadius="9" BorderBrush="{StaticResource Line}" BorderThickness="1" HorizontalAlignment="Left" Margin="0,6,0,4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton Style="{StaticResource Segment}" Content="Разлёт — расходится" GroupName="dyn"
+                                                         IsChecked="{Binding DynamicStyle, Converter={StaticResource EnumChk}, ConverterParameter=Spread}"/>
+                                            <RadioButton Style="{StaticResource Segment}" Content="Сужение — сходится" GroupName="dyn"
+                                                         IsChecked="{Binding DynamicStyle, Converter={StaticResource EnumChk}, ConverterParameter=Contract}"/>
+                                        </StackPanel>
+                                    </Border>
                                     <local:SliderRow Label="Насколько" Minimum="1" Maximum="30" Value="{Binding SpreadAmount}"/>
-                                    <local:SliderRow Label="Скорость разлёта" Minimum="20" Maximum="1000" Step="10" Suffix=" мс" Value="{Binding SpreadRiseMs}"/>
+                                    <local:SliderRow Label="Скорость" Minimum="20" Maximum="1000" Step="10" Suffix=" мс" Value="{Binding SpreadRiseMs}"/>
                                     <local:SliderRow Label="Возврат" Minimum="20" Maximum="1500" Step="10" Suffix=" мс" Value="{Binding SpreadRecoverMs}"/>
                                 </StackPanel>
                                 <DockPanel Margin="0,8,0,0">

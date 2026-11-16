@@ -66,6 +66,7 @@ public sealed class CrosshairAnimator
             }
             else _spread = 0;
             int extra = (int)Math.Round(_spread * Math.Max(0, p.SpreadAmount));
+            if (p.DynamicStyle == DynamicStyle.Contract) extra = -extra;
             bool fireColor = p.FireColorEnabled && firing;
             var key = (extra, fireColor);
             if (!_dynamic.TryGetValue(key, out var bmp))
