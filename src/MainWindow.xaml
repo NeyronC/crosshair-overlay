@@ -1,0 +1,463 @@
+<Window x:Class="CrosshairOverlay.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:CrosshairOverlay"
+        Title="Crosshair Overlay" Width="1080" Height="800" MinWidth="900" MinHeight="660"
+        Background="{StaticResource Bg}" Foreground="{StaticResource TextMain}" WindowStartupLocation="CenterScreen"
+        FontFamily="{StaticResource UiFont}" UseLayoutRounding="True" SnapsToDevicePixels="True">
+    <Window.Resources>
+        <local:PercentConverter x:Key="Pct"/>
+        <local:ModeVisibilityConverter x:Key="ModeVis"/>
+        <local:ModeCheckedConverter x:Key="ModeChk"/>
+        <local:EnumCheckedConverter x:Key="EnumChk"/>
+        <local:HexBrushConverter x:Key="HexBrush"/>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="232"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Background="{StaticResource Sidebar}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
+            <DockPanel Margin="14,18,14,16">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,0,0,26">
+                    <Grid Width="30" Height="30">
+                        <Ellipse Stroke="{StaticResource Accent}" StrokeThickness="2"/>
+                        <Rectangle Width="2" Height="9" Fill="{StaticResource Accent}" VerticalAlignment="Top"/>
+                        <Rectangle Width="2" Height="9" Fill="{StaticResource Accent}" VerticalAlignment="Bottom"/>
+                        <Rectangle Width="9" Height="2" Fill="{StaticResource Accent}" HorizontalAlignment="Left"/>
+                        <Rectangle Width="9" Height="2" Fill="{StaticResource Accent}" HorizontalAlignment="Right"/>
+                        <Ellipse Width="4" Height="4" Fill="{StaticResource TextMain}"/>
+                    </Grid>
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Crosshair" FontFamily="{StaticResource DisplayFont}" FontSize="17" FontWeight="SemiBold"/>
+                        <TextBlock Text="overlay" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,-3,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="4,12,4,0">
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap">
+                        <Run Text="Сделал"/> <Run Text="Neyron" Foreground="{StaticResource Accent}" FontWeight="SemiBold"/>
+                    </TextBlock>
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextDim}" TextWrapping="Wrap" Margin="0,2,0,0"
+                               Text="Вопросы и предложения — в Discord: neyron"/>
+                </StackPanel>
+                <Border DockPanel.Dock="Bottom" Background="{StaticResource Panel}" CornerRadius="10" Padding="12,10" BorderBrush="{StaticResource Line}" BorderThickness="1">
+                    <StackPanel>
+                        <CheckBox Content="Прицел включён" IsChecked="{Binding Settings.Enabled}" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource TextDim}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="StatusText" Text="Ожидание окна игры" FontSize="12" Foreground="{StaticResource TextMuted}" Margin="8,0,0,0" TextWrapping="Wrap" MaxWidth="160"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel>
+                    <RadioButton x:Name="NavCrosshair" Style="{StaticResource NavButton}" Tag="&#xE7B3;" Content="Прицел" IsChecked="True" Checked="Nav_Checked"/>
+                    <RadioButton x:Name="NavTarget" Style="{StaticResource NavButton}" Tag="&#xE7C4;" Content="Окно игры" Checked="Nav_Checked"/>
+                    <RadioButton x:Name="NavBehavior" Style="{StaticResource NavButton}" Tag="&#xE713;" Content="Поведение" Checked="Nav_Checked"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid x:Name="PageCrosshair" Grid.Column="1" Margin="28,22,20,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="296"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.ColumnSpan="2" Margin="0,0,0,16">
+                <TextBlock Text="Прицел" Style="{StaticResource H1}"/>
+                <TextBlock Text="Нарисуйте свой прицел или загрузите картинку. Изменения сразу применяются к оверлею." Style="{StaticResource Hint}" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <DockPanel Grid.Row="1" Margin="0,0,16,0">
+                <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Padding="12">
+                    <StackPanel>
+                        <Border x:Name="PreviewBox" Height="170" CornerRadius="8" ClipToBounds="True">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#5E6E7C" Offset="0"/>
+                                    <GradientStop Color="#8D9A8E" Offset="0.48"/>
+                                    <GradientStop Color="#4A4F3A" Offset="0.52"/>
+                                    <GradientStop Color="#2A2C22" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Image x:Name="PreviewImage" Stretch="None" RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <DockPanel Margin="0,10,0,0">
+                            <TextBlock Text="Масштаб" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center"/>
+                            <Border HorizontalAlignment="Right" Background="#0C0D10" CornerRadius="8" BorderBrush="{StaticResource Line}" BorderThickness="1">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton Style="{StaticResource Segment}" Content="×1" GroupName="zoom" Tag="1" Checked="Zoom_Checked"/>
+                                    <RadioButton Style="{StaticResource Segment}" Content="×2" GroupName="zoom" Tag="2" Checked="Zoom_Checked"/>
+                                    <RadioButton Style="{StaticResource Segment}" Content="×4" GroupName="zoom" Tag="4" Checked="Zoom_Checked" IsChecked="True"/>
+                                    <RadioButton Style="{StaticResource Segment}" Content="×8" GroupName="zoom" Tag="8" Checked="Zoom_Checked"/>
+                                </StackPanel>
+                            </Border>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Margin="0,12,0,0" Padding="12">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="4,0,0,8">
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                <Button Style="{StaticResource IconButton}" ToolTip="Новый пресет" Click="AddPreset_Click"><TextBlock Text="&#xE710;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"/></Button>
+                                <Button Style="{StaticResource IconButton}" ToolTip="Дублировать" Click="DuplicatePreset_Click" Margin="6,0"><TextBlock Text="&#xE8C8;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"/></Button>
+                                <Button Style="{StaticResource IconButton}" ToolTip="Сбросить стандартный прицел к исходному виду" Click="ResetPreset_Click" Margin="0,0,6,0"><TextBlock Text="&#xE7A7;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"/></Button>
+                                <Button Style="{StaticResource IconButton}" ToolTip="Удалить" Click="DeletePreset_Click"><TextBlock Text="&#xE74D;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"/></Button>
+                            </StackPanel>
+                            <TextBlock Text="ПРЕСЕТЫ" Style="{StaticResource H2}" Margin="0" VerticalAlignment="Center"/>
+                        </DockPanel>
+                        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                            <Button Content="Вернуть удалённые стандартные прицелы" Click="RestoreDefaults_Click" Padding="10,5" FontSize="12" Margin="0,0,0,8"/>
+                            <TextBox Text="{Binding ActivePreset.Name, UpdateSourceTrigger=PropertyChanged}" ToolTip="Название пресета"/>
+                            <TextBlock Text="Клавиша этого прицела" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="2,8,0,4"/>
+                            <local:HotkeyBox Hotkey="{Binding ActivePreset.Hotkey}"
+                                             ToolTip="Щёлкните и зажмите сочетание (например C+3). В игре оно сразу включит этот прицел. Backspace — очистить."/>
+                        </StackPanel>
+                        <ListBox x:Name="PresetList" ItemsSource="{Binding Settings.Presets}" SelectionChanged="PresetList_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel>
+                                        <Ellipse Width="8" Height="8" Fill="{Binding Color, Converter={StaticResource HexBrush}}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Hotkey}" FontSize="11" Foreground="{StaticResource TextMuted}"
+                                                   FontFamily="Cascadia Mono, Consolas" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        <TextBlock Text="{Binding Name}" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+            </DockPanel>
+
+            <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
+                <StackPanel DataContext="{Binding ActivePreset}">
+                    <Border Background="#0C0D10" CornerRadius="9" BorderBrush="{StaticResource Line}" BorderThickness="1" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Style="{StaticResource Segment}" Content="Фигуры" GroupName="mode" IsChecked="{Binding Mode, Converter={StaticResource ModeChk}, ConverterParameter=Shapes}"/>
+                            <RadioButton Style="{StaticResource Segment}" Content="Пиксели" GroupName="mode" IsChecked="{Binding Mode, Converter={StaticResource ModeChk}, ConverterParameter=Pixels}"/>
+                            <RadioButton Style="{StaticResource Segment}" Content="Картинка" GroupName="mode" IsChecked="{Binding Mode, Converter={StaticResource ModeChk}, ConverterParameter=Image}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Visibility="{Binding Mode, Converter={StaticResource ModeVis}, ConverterParameter=Shapes}">
+                        <TextBlock Text="КРЕСТ" Style="{StaticResource H2}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" Content="T-образный" IsChecked="{Binding TStyle}"/>
+                                    <CheckBox Content="Показывать крест" IsChecked="{Binding CrossEnabled}"/>
+                                </DockPanel>
+                                <StackPanel IsEnabled="{Binding CrossEnabled}">
+                                    <local:SliderRow Label="Длина" Minimum="1" Maximum="40" Value="{Binding CrossLength}"/>
+                                    <local:SliderRow Label="Толщина" Minimum="1" Maximum="10" Value="{Binding CrossThickness}"/>
+                                    <local:SliderRow Label="Отступ от центра" Minimum="0" Maximum="30" Value="{Binding CrossGap}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="РЕАКЦИЯ НА ВЫСТРЕЛ (ЛКМ)" Style="{StaticResource H2}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <CheckBox Content="Разлёт при стрельбе (крест и круг расходятся, пока зажата ЛКМ)" IsChecked="{Binding SpreadEnabled}"/>
+                                <StackPanel IsEnabled="{Binding SpreadEnabled}">
+                                    <local:SliderRow Label="Насколько" Minimum="1" Maximum="30" Value="{Binding SpreadAmount}"/>
+                                    <local:SliderRow Label="Скорость разлёта" Minimum="20" Maximum="1000" Step="10" Suffix=" мс" Value="{Binding SpreadRiseMs}"/>
+                                    <local:SliderRow Label="Возврат" Minimum="20" Maximum="1500" Step="10" Suffix=" мс" Value="{Binding SpreadRecoverMs}"/>
+                                </StackPanel>
+                                <DockPanel Margin="0,8,0,0">
+                                    <TextBox DockPanel.Dock="Right" Text="{Binding FireColor, UpdateSourceTrigger=LostFocus}" Width="120" FontFamily="Cascadia Mono, Consolas"
+                                             IsEnabled="{Binding FireColorEnabled}" KeyDown="HexBox_KeyDown"/>
+                                    <Border DockPanel.Dock="Right" Width="26" Height="26" CornerRadius="6" Margin="0,0,8,0"
+                                            Background="{Binding FireColor, Converter={StaticResource HexBrush}}" BorderBrush="{StaticResource Line}" BorderThickness="1"/>
+                                    <CheckBox Content="Менять цвет при стрельбе" IsChecked="{Binding FireColorEnabled}"/>
+                                </DockPanel>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                                           Text="Зажмите левую кнопку мыши на превью слева, чтобы проверить. В игре прицел смотрит только на состояние кнопки (GetAsyncKeyState), мышь не перехватывается."/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="ТОЧКА" Style="{StaticResource H2}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" Content="Круглая" IsChecked="{Binding DotRound}"/>
+                                    <CheckBox Content="Показывать точку" IsChecked="{Binding DotEnabled}"/>
+                                </DockPanel>
+                                <local:SliderRow Label="Размер" Minimum="1" Maximum="16" Value="{Binding DotSize}" IsEnabled="{Binding DotEnabled}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="КРУГ" Style="{StaticResource H2}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <CheckBox Content="Показывать круг" IsChecked="{Binding CircleEnabled}"/>
+                                <StackPanel IsEnabled="{Binding CircleEnabled}">
+                                    <local:SliderRow Label="Радиус" Minimum="2" Maximum="80" Value="{Binding CircleRadius}"/>
+                                    <local:SliderRow Label="Толщина" Minimum="1" Maximum="8" Value="{Binding CircleThickness}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Mode, Converter={StaticResource ModeVis}, ConverterParameter=Pixels}">
+                        <TextBlock Text="ПИКСЕЛЬНАЯ СЕТКА" Style="{StaticResource H2}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+<local:PixelGridEditor x:Name="PixelEditor" Height="380" HorizontalAlignment="Stretch"/>
+                                <WrapPanel Margin="0,12,0,0">
+                                    <TextBlock Text="Сетка" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center" Margin="0,0,10,6"/>
+                                    <Button Content="11" Tag="11" Click="GridSize_Click" Margin="0,0,6,6" Padding="10,5"/>
+                                    <Button Content="15" Tag="15" Click="GridSize_Click" Margin="0,0,6,6" Padding="10,5"/>
+                                    <Button Content="21" Tag="21" Click="GridSize_Click" Margin="0,0,6,6" Padding="10,5"/>
+                                    <Button Content="31" Tag="31" Click="GridSize_Click" Margin="0,0,6,6" Padding="10,5"/>
+                                    <Button Content="41" Tag="41" Click="GridSize_Click" Margin="0,0,18,6" Padding="10,5"/>
+                                    <Button Content="Очистить" Click="ClearPixels_Click" Margin="0,0,6,6"/>
+                                    <Button Content="Из текущих фигур" Click="ShapesToPixels_Click" Margin="0,0,6,6"
+                                            ToolTip="Перенести прицел из режима «Фигуры» в сетку для доработки"/>
+                                </WrapPanel>
+                                <WrapPanel Margin="0,4,0,0">
+                                    <CheckBox x:Name="MirrorXBox" Content="Симметрия ↔" IsChecked="True" Click="Mirror_Click" Margin="0,0,24,0"/>
+                                    <CheckBox x:Name="MirrorYBox" Content="Симметрия ↕" IsChecked="True" Click="Mirror_Click"/>
+                                </WrapPanel>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                                           Text="ЛКМ — рисовать текущим цветом, ПКМ — стирать. Рамкой отмечена центральная клетка — она будет в центре окна игры."/>
+                                <local:SliderRow Label="Размер пикселя" Minimum="1" Maximum="6" Value="{Binding PixelScale}" Suffix=" ×" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Mode, Converter={StaticResource ModeVis}, ConverterParameter=Image}">
+                        <TextBlock Text="СВОЯ КАРТИНКА" Style="{StaticResource H2}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Style="{StaticResource AccentButton}" Content="Загрузить PNG / SVG / GIF" Click="LoadImage_Click"/>
+                                    <TextBlock Text="{Binding ImagePath, TargetNullValue='Файл не выбран'}" Foreground="{StaticResource TextMuted}"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,12,0"/>
+                                </DockPanel>
+                                <local:SliderRow Label="Размер" Minimum="4" Maximum="256" Value="{Binding ImageSize}" Margin="0,12,0,0"/>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                                           Text="Картинка вписывается в квадрат заданного размера; её центр совпадает с центром окна. PNG меньше этого размера выводится пиксель в пиксель. Файл копируется в папку настроек."/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="АНИМАЦИЯ GIF" Style="{StaticResource H2}"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <Border Background="#0C0D10" CornerRadius="9" BorderBrush="{StaticResource Line}" BorderThickness="1" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton Style="{StaticResource Segment}" Content="Всегда" GroupName="gif"
+                                                     IsChecked="{Binding GifPlayback, Converter={StaticResource EnumChk}, ConverterParameter=Always}"/>
+                                        <RadioButton Style="{StaticResource Segment}" Content="Пока зажата ЛКМ" GroupName="gif"
+                                                     IsChecked="{Binding GifPlayback, Converter={StaticResource EnumChk}, ConverterParameter=WhileFiring}"/>
+                                        <RadioButton Style="{StaticResource Segment}" Content="Один раз при клике" GroupName="gif"
+                                                     IsChecked="{Binding GifPlayback, Converter={StaticResource EnumChk}, ConverterParameter=OnClick}"/>
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                           Text="Работает для GIF-файлов. «Пока зажата ЛКМ» — анимация идёт во время стрельбы, иначе показан первый кадр. «Один раз при клике» — при каждом нажатии ЛКМ анимация проигрывается до конца. Зажмите ЛКМ на превью, чтобы проверить."/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <TextBlock Text="ЦВЕТ" Style="{StaticResource H2}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <WrapPanel x:Name="FillSwatches" Margin="0,4,0,4"/>
+                            <DockPanel Margin="0,4,0,0">
+                                <Border Width="32" Height="32" CornerRadius="7" Background="{Binding Color, Converter={StaticResource HexBrush}}" BorderBrush="{StaticResource Line}" BorderThickness="1"/>
+                                <TextBox Text="{Binding Color, UpdateSourceTrigger=LostFocus}" Width="130" Margin="10,0,0,0" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Left"
+                                         ToolTip="#RRGGBB или #AARRGGBB" KeyDown="HexBox_KeyDown"/>
+                            </DockPanel>
+                            <local:SliderRow Label="Непрозрачность" Minimum="5" Maximum="100" Suffix=" %" Value="{Binding Opacity, Converter={StaticResource Pct}}" Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="ОБВОДКА" Style="{StaticResource H2}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <CheckBox Content="Обводка (видно на любом фоне)" IsChecked="{Binding OutlineEnabled}"/>
+                            <StackPanel IsEnabled="{Binding OutlineEnabled}">
+                                <local:SliderRow Label="Толщина" Minimum="1" Maximum="4" Value="{Binding OutlineThickness}"/>
+                                <DockPanel Margin="0,6,0,0">
+                                    <WrapPanel x:Name="OutlineSwatches" VerticalAlignment="Center"/>
+                                    <TextBox Text="{Binding OutlineColor, UpdateSourceTrigger=LostFocus}" Width="130" Margin="10,0,0,6" FontFamily="Cascadia Mono, Consolas"
+                                             HorizontalAlignment="Left" KeyDown="HexBox_KeyDown"/>
+                                </DockPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="СМЕЩЕНИЕ ОТ ЦЕНТРА" Style="{StaticResource H2}"/>
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                        <StackPanel>
+                            <local:SliderRow Label="По горизонтали" Minimum="-100" Maximum="100" Value="{Binding OffsetX}"/>
+                            <local:SliderRow Label="По вертикали" Minimum="-100" Maximum="100" Value="{Binding OffsetY}"/>
+                            <TextBlock Style="{StaticResource Hint}" Text="Обычно 0. Нужно, если прицел игры смещён относительно центра окна."/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <ScrollViewer x:Name="PageTarget" Grid.Column="1" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="28,22,28,20" MaxWidth="820" HorizontalAlignment="Left">
+                <TextBlock Text="Окно игры" Style="{StaticResource H1}"/>
+                <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,16"
+                           Text="Прицел ставится в центр клиентской области этого окна и следует за ним при перемещении и изменении размера. Он виден, только когда окно игры активно."/>
+
+                <Border Background="#14F5A524" BorderBrush="#40F5A524" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                    <DockPanel>
+                        <TextBlock Text="&#xE946;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Foreground="{StaticResource Accent}" FontSize="16" Margin="0,1,12,0" VerticalAlignment="Top"/>
+                        <TextBlock Style="{StaticResource Hint}" Foreground="{StaticResource TextMain}">
+                            <Run FontWeight="SemiBold">STALZONE: включите режим экрана «В окне без рамки (режим совместимости)» или «В окне».</Run>
+                            <Run>В полноэкранном режиме драйвер выводит кадр игры на монитор напрямую, и никакое внешнее окно поверх него не видно. Можно попробовать: Панель управления NVIDIA → Программные настройки → stalzonew.exe → «Метод представления Vulkan/OpenGL» → «Предпочтительно многослойный на цепочке DXGI».</Run>
+                        </TextBlock>
+                    </DockPanel>
+                </Border>
+
+                <TextBlock Text="ЦЕЛЬ" Style="{StaticResource H2}"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Процесс (exe)" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding Settings.TargetProcess, UpdateSourceTrigger=PropertyChanged}" FontFamily="Cascadia Mono, Consolas"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Заголовок содержит (необязательно)" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,0,0,6"/>
+                                <TextBox Text="{Binding Settings.TargetTitle, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0" Text="Несколько exe можно указать через «;». Цель запоминается по имени процесса, поэтому работает и после перезапуска игры."/>
+                        <WrapPanel Margin="0,12,0,0">
+                            <Button Style="{StaticResource AccentButton}" Content="Выбрать кликом" Click="PickByClick_Click" Margin="0,0,8,0"/>
+                            <Button Content="Список окон" Click="RefreshWindows_Click" Margin="0,0,8,0"/>
+                            <Button Content="STALZONE по умолчанию" Click="DefaultTarget_Click"/>
+                        </WrapPanel>
+                        <TextBlock x:Name="PickHint" Style="{StaticResource Hint}" Foreground="{StaticResource Accent}" Margin="0,10,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel x:Name="WindowListPanel" Visibility="Collapsed">
+                    <TextBlock Text="ОТКРЫТЫЕ ОКНА — дважды щёлкните, чтобы выбрать" Style="{StaticResource H2}"/>
+                    <Border Style="{StaticResource Card}" Padding="8">
+                        <ListBox x:Name="WindowList" MaxHeight="300" MouseDoubleClick="WindowList_DoubleClick">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Display}" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Details}" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </StackPanel>
+
+                <TextBlock Text="СОСТОЯНИЕ" Style="{StaticResource H2}"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="StatusDot2" Width="10" Height="10" Fill="{StaticResource TextDim}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusText2" Text="—" Margin="10,0,0,0" FontSize="13"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer x:Name="PageBehavior" Grid.Column="1" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="28,22,28,20" MaxWidth="820" HorizontalAlignment="Left">
+                <TextBlock Text="Поведение" Style="{StaticResource H1}"/>
+                <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0" Text="Когда показывать прицел и как запускать программу."/>
+
+                <TextBlock Text="МЕНЮ, ИНВЕНТАРЬ, КАРТА" Style="{StaticResource H2}"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <CheckBox Content="Скрывать прицел, когда виден курсор мыши" IsChecked="{Binding Settings.HideWhenCursorVisible}"/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="46,2,0,0"
+                                   Text="В бою игра прячет системный курсор, а в меню, инвентаре и на карте показывает его. Оверлей проверяет только это (GetCursorInfo) — без чтения памяти игры."/>
+                        <CheckBox Content="Скрывать прицел, пока зажата правая кнопка мыши (прицеливание)" IsChecked="{Binding Settings.HideWhileAiming}" Margin="0,12,0,5"/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="46,2,0,0"
+                                   Text="Удобно для оружия с оптикой или коллиматором. Проверяется состояние кнопки (GetAsyncKeyState), мышь не перехватывается."/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="ГОРЯЧИЕ КЛАВИШИ" Style="{StaticResource H2}"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Скрыть / показать прицел" Margin="0,0,0,6"/>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Сбросить" Click="ClearHotkey_Click" Margin="8,0,0,0"/>
+                            <local:HotkeyBox Hotkey="{Binding Settings.Hotkey}"/>
+                        </DockPanel>
+
+                        <CheckBox Content="Следующий пресет по сочетанию клавиш" IsChecked="{Binding Settings.NextPresetEnabled}" Margin="0,16,0,6"/>
+                        <DockPanel IsEnabled="{Binding Settings.NextPresetEnabled}">
+                            <Button DockPanel.Dock="Right" Content="Сбросить" Click="ClearNextHotkey_Click" Margin="8,0,0,0"/>
+                            <local:HotkeyBox Hotkey="{Binding Settings.NextPresetHotkey}"/>
+                        </DockPanel>
+
+                        <TextBlock x:Name="HotkeyStatus" Style="{StaticResource Hint}" Margin="0,10,0,0"/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                                   Text="Свою клавишу можно задать каждому прицелу — в разделе «Прицел», под названием пресета. Щёлкните по полю и зажмите клавиши, затем отпустите. Подходят любые сочетания: Ctrl+Alt+X, C+3, Shift+Mouse4. Esc — отмена, Backspace — очистить. Клавиши срабатывают, когда активно окно игры, и не перехватываются: игра их тоже получит."/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="ПОЛНОЭКРАННЫЙ РЕЖИМ" Style="{StaticResource H2}"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <CheckBox Content="Автоматически настраивать драйвер NVIDIA для полноэкранного режима" IsChecked="{Binding Settings.NvidiaAuto}"/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="46,2,0,0"
+                                   Text="Для exe игры в профиле драйвера включается «Метод представления Vulkan/OpenGL → Предпочтительно многослойный на цепочке DXGI». Тогда Windows может показать прицел поверх полноэкранной игры. После изменения перезапустите игру. Выключите флажок — изменение будет отменено. На видеокартах AMD и Intel эта настройка не нужна или недоступна: используйте «В окне без рамки»."/>
+                        <DockPanel Margin="46,10,0,0">
+                            <Button x:Name="NvidiaAdminButton" DockPanel.Dock="Right" Content="Применить с правами администратора" Click="NvidiaAdmin_Click" Visibility="Collapsed" Margin="12,0,0,0"/>
+                            <TextBlock x:Name="NvidiaStatusText" Style="{StaticResource Hint}" Foreground="{StaticResource TextMain}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="НАГРУЗКА" Style="{StaticResource H2}"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <CheckBox Content="Низкий приоритет и режим эффективности в фоне" IsChecked="{Binding Settings.LowPriority}"/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="46,2,0,0"
+                                   Text="Когда окно настроек закрыто, программа работает с самым низким приоритетом и в режиме эффективности Windows (EcoQoS) — она никогда не отнимает процессор у игры. Пока окно настроек открыто, приоритет обычный."/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="ЗАПУСК" Style="{StaticResource H2}"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <CheckBox x:Name="AutostartBox" Content="Запускать вместе с Windows (в трее)"/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="46,2,0,0"
+                                   Text="Запись в HKCU\Software\Microsoft\Windows\CurrentVersion\Run. Права администратора не нужны. Если перенесёте exe в другую папку — включите заново."/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="БЕЗОПАСНОСТЬ" Style="{StaticResource H2}"/>
+                <Border Style="{StaticResource Card}">
+                    <TextBlock Style="{StaticResource Hint}" Foreground="{StaticResource TextMain}"
+                               Text="Оверлей — отдельное прозрачное окно поверх игры, сквозь которое проходят клики. Программа не открывает процесс игры, не читает и не меняет её память, не внедряет DLL и не перехватывает DirectX/OpenGL. Она смотрит только на то, какое окно активно, где оно находится и виден ли курсор."/>
+                </Border>
+
+                <TextBlock x:Name="PathsText" Style="{StaticResource Hint}" Margin="0,16,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

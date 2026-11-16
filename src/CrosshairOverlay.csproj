@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>CrosshairOverlay</AssemblyName>
+    <RootNamespace>CrosshairOverlay</RootNamespace>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.0.0</Version>
+    <Product>Crosshair Overlay</Product>
+    <Company>Crosshair Overlay</Company>
+    <SatelliteResourceLanguages>ru;en</SatelliteResourceLanguages>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.6" />
+  </ItemGroup>
+
+</Project>
